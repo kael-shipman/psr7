@@ -181,7 +181,7 @@ class ServerRequest extends Request implements ServerRequestInterface
             }
         }
 
-        $uri = self::getUriFromGlobals();
+        $uri = static::getUriFromGlobals();
         $body = new LazyOpenStream('php://input', 'r+');
         $protocol = isset($_SERVER['SERVER_PROTOCOL']) ? str_replace('HTTP/', '', $_SERVER['SERVER_PROTOCOL']) : '1.1';
 
@@ -191,7 +191,7 @@ class ServerRequest extends Request implements ServerRequestInterface
             ->withCookieParams($_COOKIE)
             ->withQueryParams($_GET)
             ->withParsedBody($_POST)
-            ->withUploadedFiles(self::normalizeFiles($_FILES));
+            ->withUploadedFiles(static::normalizeFiles($_FILES));
     }
 
     /**
