@@ -3,6 +3,7 @@
 namespace GuzzleHttp\Psr7;
 
 use InvalidArgumentException;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Http\Message\StreamInterface;
@@ -186,17 +187,17 @@ class ServerRequest extends Request implements ServerRequestInterface
             }
         }
 
-        $uri = static::getUriFromGlobals();
+        $uri = self::getUriFromGlobals();
         $body = new LazyOpenStream('php://input', 'r+');
         $protocol = isset($_SERVER['SERVER_PROTOCOL']) ? str_replace('HTTP/', '', $_SERVER['SERVER_PROTOCOL']) : '1.1';
 
-        $serverRequest = new static($method, $uri, $headers, $body, $protocol, $_SERVER);
+        $serverRequest = new ServerRequest($method, $uri, $headers, $body, $protocol, $_SERVER);
 
         return $serverRequest
             ->withCookieParams($_COOKIE)
             ->withQueryParams($_GET)
             ->withParsedBody($_POST)
-            ->withUploadedFiles(static::normalizeFiles($_FILES));
+            ->withUploadedFiles(self::normalizeFiles($_FILES));
     }
 
     /**
@@ -242,6 +243,23 @@ class ServerRequest extends Request implements ServerRequestInterface
         }
 
         return $uri;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function fromPsr7(RequestInterface $src) {
+        $request = parent::fromPsr7($src);
+
+        if ($src instanceof ServerRequestInterface) {
+            return $request
+                ->withCookieParams($src->getCookieParams())
+                ->withQueryParams($src->getQueryParams())
+                ->withParsedBody($src->getParsedBody())
+                ->withUploadedFiles($src->getUploadedFiles());
+        } else {
+            return $request;
+        }
     }
 
 
